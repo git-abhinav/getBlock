@@ -1,0 +1,47 @@
+Roll no 	Name 		Marks	Status
+
+1893891 	Abhinav 	301
+1893892 	Abhishek 	409
+1893893 	Anju 		211	* 
+1893894 	Anu 		355
+1893895 	Anuradha 	337
+1893896 	Asha 		313
+1893897 	Ayush 		351
+1893898 	Chhavi 		362
+1893899 	Deepa 		217 	* 
+1893900 	Divesh 		378
+1893901 	Ekta 		386
+1893902 	Himanshu 	0 	* 
+1893903 	Krishna 	410
+1893904 	Kulpreet 	261	* 
+1893905 	Lisathung   	284
+1893906 	Mayank 		369 
+1893907 	Megha 		400
+1893908 	Moni 		304 	*
+1893909 	Monika 		296 	*
+1893910 	Naveen 		261
+1893911		Nitin 		245 	*
+1893912 	Preeti 		314
+1893913 	Radhnandni 	199 	*
+1893914 	Rishav 		356
+1893915 	Rohit 		356
+1893916 	Ronak 		398
+1893917 	Ruchi 		344
+1893918 	Rumman 		315
+1893919 	Samyak 		428
+1893920		Samgeeta 	222 	*
+1893921 	Saurabh 	343
+1893922 	Saurav 		296 	* 
+1893923 	Saurav 		230 	*
+1893924 	Smriti 		324 	* 
+1893925 	Sunil 		355
+1893926 	Swati 		364
+1893927 	Tamanna 	134	* 
+1893928 	Tanuj 		318
+1893929 	Tanya Dua 	332 	* 
+1893930 	Tanya 		390
+1893931 	Uditi 		256 	*
+1893932 	Updesh 		268
+1893933 	Vaishali 	318
+1893934 	Vanshika 	305
+1893935 	Vineet 		322
