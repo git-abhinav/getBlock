@@ -2,12 +2,12 @@ import java.util.*;
 class bufferCache
 {
 	int numberOfHashQueues;				//done
-	bufferHeader hashQueue[];			//done
+	final bufferHeader hashQueue[];		//done
 	int hashQueueSizes[];				//done
 	bufferHeader freeList;				//done
 	int maxFreeListSize;				//done
 	int freeListSize;					//done
-	final freeListEmptyEvent f = new freeListEmptyEvent();
+	freeListEmptyEvent f = new freeListEmptyEvent();
 	Random rand = new Random(); 
 	bufferCache(int maxFreeListSize, int numberOfHashQueues)
 	{
@@ -30,6 +30,7 @@ class bufferCache
 	}
 	void showRow(int whichQueue)
 	{
+
 		bufferHeader b = hashQueue[whichQueue].hashQueueNext;
         b = hashQueue[whichQueue].hashQueueNext;
         if(hashQueue[whichQueue].hashQueueNext == hashQueue[whichQueue])
@@ -53,7 +54,7 @@ class bufferCache
 		System.out.print("Hash Queue sizes are : [ ");
 		for(int i=0;i<numberOfHashQueues;++i)
 			System.out.print(hashQueueSizes[i]+" ");	
-		System.out.println(" ]");
+		System.out.println("]");
 	}
 	void insertHashQueue(bufferHeader node)
     {
@@ -74,6 +75,7 @@ class bufferCache
         	node.hashQueuePrevious = lastNode;
         	node.hashQueueNext = hashQueue[whichQueue];
         	hashQueue[whichQueue].hashQueuePrevious = node;
+            hashQueueSizes[whichQueue]++;
         }
     }
     void insertFreeList(bufferHeader node)
@@ -97,7 +99,6 @@ class bufferCache
     }
     bufferHeader getHashQueueReference(int blockNumber)
     {
-    	//must be on hashQueue
     	bufferHeader i = hashQueue[blockNumber%numberOfHashQueues].hashQueueNext;
     	while(i!=hashQueue[blockNumber%numberOfHashQueues])
     	{
@@ -105,12 +106,10 @@ class bufferCache
     			return i;
     		i = i.hashQueueNext;
     	}
-    	System.out.println("Returning null");
     	return null;
     }
     bufferHeader getFreeListReference(int blockNumber)
     {
-    	//make sure it must be on the freelist 
     	if(freeListSize == 0)
     		System.exit(1);
     	else
@@ -123,7 +122,7 @@ class bufferCache
     			i = i.freeNext;
     		}	
     	}	
-    	System.out.println("Returning null");
+    	// System.out.println("Returning null");
     	return null;
     }
     void showFreeList()
@@ -146,6 +145,8 @@ class bufferCache
     boolean presentInFreeList(int blockNumber)
     {
     	bufferHeader i = freeList.freeNext;
+        if(freeListSize == 0)
+            return false;
 		while(i!=freeList)
 		{
 			if(i.blockNumber == blockNumber)
@@ -177,8 +178,6 @@ class bufferCache
     		if(freeListSize==0)
     			f.freeListEmptyNow();
     	}
-    	if(buffer==null)
-    		System.out.println("Returning null");
     	return buffer;
     }
     bufferHeader takeOutFreeBuffer(int blockNumber)
@@ -199,8 +198,20 @@ class bufferCache
 		freeListSize--;
 		return buffer;	
     }
-    bufferHeader getBlock(int blockNumber) throws InterruptedException
+    bufferHeader takeOutHashQueueBuffer(int blockNumber)
     {
+        bufferHeader i = hashQueue[blockNumber%numberOfHashQueues].hashQueueNext;
+        while(i!=hashQueue[blockNumber%numberOfHashQueues])
+        {
+            if(i.blockNumber==blockNumber)
+                return i;
+            i = i.hashQueueNext;
+        }
+        return null;
+    }
+    bufferHeader getBlock(int blockNumber, String threadName) throws InterruptedException
+    {
+        System.out.println(threadName+" is aksing for blockNumber "+blockNumber);
     	bufferHeader buffer;
     	while(true)
     	{
@@ -208,75 +219,124 @@ class bufferCache
     		{
     			System.out.println(blockNumber+" is on hashQueue");
     			buffer = getHashQueueReference(blockNumber);
-    			if(buffer.free == false)
-    			{
-    				System.out.println(blockNumber +" is not free");
-    				synchronized(buffer)
-    				{
-    					while(buffer.free == false)
+                
+                if(buffer.free == false)
+                {
+                    System.out.println(blockNumber +" is not free");
+                    synchronized(hashQueue)
+                    {
     					while(buffer.free == false)
     					{
-    						wait();
-    					}
-    				}
+                            System.out.println(threadName+" has to wait for ["+blockNumber+"], as lock is aquired by - "+buffer.aquiredBy+"\n\n\n\n\n\n\n");
+    						hashQueue.wait();
+    					}  
+        			}
+                    System.out.println("\n\n\n\n"+threadName+"\'s wait is over ["+threadName+"] got the blockNumber "+blockNumber+"\n\n\n\n");
     			}
-    			System.out.println(blockNumber+" is free");
+    			System.out.println(blockNumber+" is free for "+threadName);
     			buffer.free = false;
     			buffer = takeOutFreeBuffer(blockNumber);
+                buffer.aquiredBy = threadName;
     			return buffer;	
     		}
     		else 
     		{
+                System.out.println(blockNumber+" is not in hashQueue");
+                char[] animationChars = new char[]{'|', '/', '-', '\\'};
+                for (int i=0;i<=100;i++)
+                {
+                    System.out.print("Reading blockNumber "+blockNumber+" from disk "+ i + "% " + animationChars[i % 4] + "\r");
+                    Thread.sleep(2);
+                }
     			if(f.freeListEmpty == true)
     			{
-    				synchronized(f)
-    				{
+    				// synchronized(f)
+    				// {
     					while(f.freeListEmpty == true)
     					{
-    						wait();
+    						f.wait();
     					}
-    				}
+    				// }
     			}
-    			buffer = takeOutFreeBuffer(blockNumber);
+    			buffer = takeOutFirstFreeBuffer();
     			if(buffer.delayedWrite == true)
     			{
-    				//invoke kernel for asynchronous write
+                    System.out.println("asynchronous write being done\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     			}
-    			bufferHeader tempNode = takeOutFirstFreeBuffer();
+                bufferHeader tempNode = takeOutHashQueueBuffer(buffer.blockNumber);     //remove from old hash queue
     			insertHashQueue(new bufferHeader(blockNumber));
+                buffer = getHashQueueReference(blockNumber);
+                buffer.free = false;
+                buffer.aquiredBy = threadName;
     			return buffer;
     		}
     	}
     }
-    void brelease(int blockNumber)
+    void enQueueBeginning(bufferHeader buffer)
     {
-
+        bufferHeader firstNode = freeList.freeNext;
+        freeList.freeNext = buffer;
+        buffer.freePrevious = freeList;
+        buffer.freeNext = firstNode;
+        firstNode.freePrevious = buffer;
+        freeListSize++;
     }
-    public static void main(String args[]) throws InterruptedException
+    void enQueueEnd(bufferHeader buffer)
     {
-    	bufferCache b = new bufferCache(8, 4);
-    	b.insertHashQueue(new bufferHeader(28));
-    	b.insertHashQueue(new bufferHeader(4));
-    	b.insertHashQueue(new bufferHeader(64));
-    	b.insertHashQueue(new bufferHeader(17));
-    	b.insertHashQueue(new bufferHeader(5));
-    	b.insertHashQueue(new bufferHeader(97));
-    	b.insertHashQueue(new bufferHeader(98));
-    	b.insertHashQueue(new bufferHeader(50));
-    	b.insertHashQueue(new bufferHeader(20));
-    	b.insertHashQueue(new bufferHeader(3));
-    	b.insertHashQueue(new bufferHeader(35));
-    	b.insertHashQueue(new bufferHeader(99));
-    	b.showHashQueue();
-    	b.insertFreeList(new bufferHeader(3));
-    	b.insertFreeList(new bufferHeader(5));
-    	b.insertFreeList(new bufferHeader(4));
-    	b.insertFreeList(new bufferHeader(28));
-    	b.insertFreeList(new bufferHeader(97));
-    	b.insertFreeList(new bufferHeader(10));
-    	b.showFreeList();
-    	System.out.println(b.getBlock(4).blockNumber);
-    	b.showFreeList();
+        bufferHeader lastNode = freeList.freePrevious;
+        lastNode.freeNext = buffer;
+        buffer.freePrevious = lastNode;
+        buffer.freeNext = freeList;
+        freeList.freePrevious = buffer;
+        freeListSize++;
+    }
+    void brelease(bufferHeader buffer, String requestType, String threadName)
+    {
+        
+            System.out.println(threadName+" releasing buffer ["+buffer.blockNumber+"]");
+            if(requestType == "write")
+            {
+                if(buffer.delayedWrite == true)
+                {
+                    System.out.println("Inserting ["+buffer.blockNumber+"] to start as delayedWrite = true");
+                    enQueueBeginning(buffer);
+                }
+                else
+                {
+                    System.out.println("Inserting ["+buffer.blockNumber+"] to end as delayedWrite = false");   
+                    enQueueEnd(buffer);
+                }
+            }
+            else if(requestType == "read")
+            {   
+                System.out.println("Inserting ["+buffer.blockNumber+"] to end as requestType - "+requestType);       
+                enQueueEnd(buffer);
+            }  
+            buffer.free = true;
+            buffer.aquiredBy = "none";
+            synchronized(hashQueue)
+            {
+              hashQueue.notifyAll();
+            }
+            System.out.println(threadName+" released buffer ["+buffer.blockNumber+"]");
+    }
+    void intializeFreeList() throws InterruptedException
+    {
+        System.out.println("STARTING UP BUFFER CACHE PROJECT");
+        int randomFreeListSize = rand.nextInt(3)+4;
+        int randomBlockNumber;
+        char[] animationChars = new char[]{'|', '/', '-', '\\'};
+        for (int i=0;i<=100;i++)
+        {
+            System.out.print("Loading FreeList of size "+randomFreeListSize+": " + i + "% " + animationChars[i % 4] + "\r");
+            Thread.sleep(8);
+        }
+        while(freeListSize!=maxFreeListSize)
+        {
+            randomBlockNumber = rand.nextInt(5)+1;
+            if(!presentInFreeList(randomBlockNumber))
+                insertFreeList(new bufferHeader(randomBlockNumber));
+        }
     }
 }
 
