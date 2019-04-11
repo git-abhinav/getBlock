@@ -243,7 +243,7 @@ class bufferCache
                     System.out.println(threadName+"\'s wait is over ["+threadName+"] got the blockNumber "+blockNumber);
                     System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
     			}
-    			System.out.println(blockNumber+" is free for "+threadName);
+    			System.out.println("["+blockNumber+"] is free for "+threadName);
     			buffer.free = false;
     			buffer = takeOutFreeBuffer(blockNumber);
                 buffer.aquiredBy = threadName;
@@ -256,7 +256,7 @@ class bufferCache
                 for (int i=0;i<=100;i++)
                 {
                     System.out.print("Reading blockNumber "+blockNumber+" from disk "+ i + "% " + animationChars[i % 4] + "\r");
-                    Thread.sleep(2);
+                    Thread.sleep(5);
                 }
     			if(f.freeListEmpty == true)
     			{
@@ -264,9 +264,9 @@ class bufferCache
     				{
     					while(f.freeListEmpty == true)
     					{
-                            System.out.println("---------------------------------------------------------");
+                            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                             System.out.println("Free List empty, wait for some block to become free");
-                            System.out.println("---------------------------------------------------------");
+                            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     						f.wait();
     					}
     				}
@@ -288,15 +288,15 @@ class bufferCache
 
     void kernel_do_asynchronous_write() throws InterruptedException
     {
-        System.out.println("---------------------------------------------------------");
+        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
         System.out.println("Kernel Performing asynchronous write");
         char[] animationChars = new char[]{'|', '/', '-', '\\'};
         for (int i=0;i<=100;i++)
         {
             System.out.print("Asynchronous being done" + i + "% " + animationChars[i % 4] + "\r");
-            Thread.sleep(10);
+            Thread.sleep(5);
         }
-        System.out.println("---------------------------------------------------------");
+        System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
     }
 
 
@@ -375,7 +375,7 @@ class bufferCache
         for (int i=0;i<=100;i++)
         {
             System.out.print("Loading FreeList of size "+randomFreeListSize+": " + i + "% " + animationChars[i % 4] + "\r");
-            Thread.sleep(10);
+            Thread.sleep(5);
         }
         while(freeListSize!=maxFreeListSize)
         {

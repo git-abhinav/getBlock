@@ -27,12 +27,17 @@ class main
 			t.join();
 			kernel.showHashQueue();
 			kernel.showFreeList();
+			// kernel.sleep(2000);
 		}
 		kernel.dontGiveUpLock = true;
-		for(int i=8;i<=14;++i)
+		for(int i=8;i<=20;++i)
 		{	
 			t = new myThread("Thread"+Integer.toString(i));
 			t.start();
+			kernel.showHashQueue();
+			kernel.join();
+			kernel.showFreeList();
+			kernel.join();
 		}
 	}
 }
