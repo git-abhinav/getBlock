@@ -29,13 +29,10 @@ class main
 			kernel.showFreeList();
 		}
 		kernel.dontGiveUpLock = true;
-		for(int i=8;i<=10;++i)
+		for(int i=8;i<=14;++i)
 		{	
 			t = new myThread("Thread"+Integer.toString(i));
 			t.start();
-			t.join();
-			kernel.showHashQueue();
-			kernel.showFreeList();
 		}
 	}
 }

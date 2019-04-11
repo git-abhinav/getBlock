@@ -54,6 +54,10 @@ class myThread extends Thread
 	    	System.out.println(threadName+" performing I/O with blockNumber ["+blockNumber+"]");
     		if(dontGiveUpLock == false) 
     			kernel_reference.b.brelease(retreivedBuffer, typeOpertionString[typeOperationInt], this.threadName);
+    		else {
+    			sleep(1000);
+    			kernel_reference.b.brelease(retreivedBuffer, typeOpertionString[typeOperationInt], this.threadName);
+    		}
 
 	    }
 	    catch(Exception e){}
